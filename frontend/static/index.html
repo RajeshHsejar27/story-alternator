@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Alternator — Enterprise Book Reading Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Georgia&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+<style>
+  :root {
+    --accent: #6d28d9;
+    --accent-light: #8b5cf6;
+    --accent-glow: rgba(109, 40, 217, 0.15);
+    --gold: #d97706;
+    --gold-light: #f59e0b;
+    --gold-glow: rgba(217, 119, 6, 0.2);
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-reader: #fcfbf7;
+    --border: #e2e8f0;
+    --border-dark: #cbd5e1;
+    --text-main: #0f172a;
+    --text-sub: #475569;
+    --text-serif: #1e293b;
+    --header-bg: #0f172a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Header (Navy Slate Dark contrast bar for enterprise look) */
+  header {
+    background: var(--header-bg);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 0.8rem 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .brand-logo {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #7c3aed 0%, #d97706 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 12px var(--gold-glow);
+  }
+  .brand h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+  .brand p { margin: 0; font-size: 0.75rem; color: #94a3b8; }
+
+  /* Navigation Tabs */
+  nav.tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.3rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    gap: 0.3rem;
+  }
+  .nav-tab {
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.2s ease;
+  }
+  .nav-tab.active {
+    background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px var(--accent-glow);
+  }
+  .nav-tab:hover:not(.active) { color: #ffffff; background: rgba(255,255,255,0.08); }
+
+  .header-actions { display: flex; gap: 0.6rem; }
+  .btn {
+    background: #ffffff;
+    border: 1px solid var(--border-dark);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 0.4rem;
+    transition: all 0.2s ease;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    color: #ffffff; border: none;
+    box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+
+  /* Main View Container */
+  main {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .tab-view {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 1.8rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .tab-view.active { display: flex; }
+
+  /* 📚 Tab 1: Book Catalog */
+  .catalog-header { margin-bottom: 1.5rem; text-align: center; }
+  .catalog-header h2 { font-family: 'Cinzel', serif; font-size: 1.9rem; color: var(--accent); margin: 0 0 0.4rem; font-weight: 800; }
+  .catalog-header p { color: var(--text-sub); margin: 0; font-size: 0.95rem; }
+  
+  .catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+  }
+  .book-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+  .book-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-light);
+    box-shadow: 0 12px 30px var(--accent-glow);
+  }
+  .book-cover {
+    height: 160px;
+    background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+    display: flex; align-items: flex-end; padding: 1rem;
+    position: relative;
+  }
+  .book-badge {
+    position: relative; z-index: 2;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--gold); color: var(--gold);
+    padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700;
+  }
+  .book-body { padding: 1.2rem; flex: 1; display: flex; flex-direction: column; }
+  .book-title { font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; margin: 0 0 0.3rem; color: var(--text-main); }
+  .book-author { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 0.8rem; font-style: italic; }
+  .book-desc { font-size: 0.88rem; color: #334155; line-height: 1.5; flex: 1; margin-bottom: 1.2rem; }
+  .book-actions { display: flex; gap: 0.6rem; }
+
+  /* 📖 Tab 2: Immersive Reader & Story Dashboard */
+  .reader-container {
+    background: var(--bg-reader);
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+  .reader-toolbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.8rem;
+  }
+  .reader-meta { display: flex; align-items: center; gap: 0.8rem; flex: 1; }
+  .reader-meta label { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+  .book-select, .branch-select {
+    background: #f8fafc; border: 1px solid var(--border-dark);
+    color: var(--text-main); padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.88rem; outline: none;
+    font-weight: 600; cursor: pointer; transition: border-color 0.2s;
+  }
+  .book-select:focus, .branch-select:focus { border-color: var(--accent); }
+  .reader-content {
+    flex: 1; overflow-y: auto; padding: 2.5rem 3.5rem;
+    font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.95; color: var(--text-serif);
+  }
+  .illustration-banner {
+    width: 100%; max-height: 420px; object-fit: cover; border-radius: 14px;
+    border: 1px solid var(--border); margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08); display: block;
+  }
+  .reader-chapter-title {
+    font-family: 'Cinzel', serif; font-size: 1.85rem; text-align: center;
+    color: var(--accent); margin-bottom: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 1rem; font-weight: 800;
+  }
+  .reader-text-paragraphs p { margin-bottom: 1.5rem; text-indent: 1.5rem; }
+  .reader-text-paragraphs p:first-of-type { text-indent: 0; }
+  .reader-text-paragraphs p:first-of-type::first-letter {
+    font-family: 'Cinzel', serif; font-size: 3.2rem; float: left; line-height: 0.8;
+    margin-right: 0.4rem; color: var(--gold); font-weight: 800;
+  }
+  .reader-pivot-chips {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px dashed var(--border-dark);
+  }
+  .pivot-title { font-family: 'Inter', sans-serif; font-size: 0.88rem; color: var(--accent); font-weight: 700; margin-bottom: 0.8rem; }
+
+  /* 💬 Tab 3: AI Assistant Chat View */
+  .chat-layout {
+    display: flex; flex-direction: column; flex: 1;
+    max-width: 900px; width: 100%; margin: 0 auto;
+  }
+  #log {
+    flex: 1; overflow-y: auto; padding: 1.5rem 0;
+    display: flex; flex-direction: column; gap: 1.2rem;
+  }
+  .msg { display: flex; flex-direction: column; }
+  .msg.user { align-items: flex-end; }
+  .msg.agent { align-items: flex-start; }
+  .bubble {
+    padding: 1rem 1.3rem; border-radius: 14px;
+    background: #ffffff; border: 1px solid var(--border);
+    max-width: 88%; line-height: 1.65; font-size: 0.96rem; white-space: pre-wrap;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04); color: var(--text-main);
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    color: #ffffff; border: none; box-shadow: 0 4px 15px var(--accent-glow);
+  }
+  .bubble.rich { background: transparent; border: none; padding: 0; max-width: 100%; white-space: normal; width: 100%; }
+
+  /* Action Button inside Chat Bubble */
+  .open-reader-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    margin-top: 0.8rem; background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: #ffffff; font-weight: 700; padding: 0.65rem 1.15rem; border-radius: 10px;
+    cursor: pointer; border: none; font-size: 0.9rem; transition: transform 0.15s ease;
+    box-shadow: 0 4px 15px var(--gold-glow);
+  }
+  .open-reader-btn:hover { transform: scale(1.03); }
+
+  form#form {
+    display: flex; gap: 0.8rem; padding: 1rem;
+    border-top: 1px solid var(--border); background: #ffffff;
+    border-radius: 14px; margin-top: 1rem; box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+  }
+  input#input {
+    flex: 1; padding: 0.85rem 1.1rem; border: 1px solid var(--border-dark);
+    border-radius: 10px; font-size: 0.95rem; background: #f8fafc;
+    color: var(--text-main); outline: none;
+  }
+  input#input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+  /* Interactive Chips */
+  .chip-row { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+  .chip {
+    background: #ffffff; border: 1px solid var(--border-dark);
+    border-radius: 20px; padding: 0.4rem 0.9rem; font-size: 0.82rem; color: #334155;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s ease; font-weight: 500;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: #f1f5f9; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-card {
+    background: #ffffff; border: 1px solid var(--border-dark); border-radius: 16px;
+    padding: 2rem; width: 90%; max-width: 480px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  }
+  .modal-card h3 { font-family: 'Cinzel', serif; margin-top: 0; color: var(--accent); font-weight: 800; }
+  .dropzone {
+    border: 2px dashed var(--accent-light); border-radius: 12px; padding: 1.8rem;
+    text-align: center; color: var(--text-sub); margin: 1.2rem 0; cursor: pointer; background: #f8fafc;
+  }
+  .dropzone.hover { background: #f1f5f9; border-color: var(--accent); }
+
+  .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-size: 1.3rem; line-height: 1; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-logo"><span class="material-symbols-outlined" style="color:#fff; font-size:1.4rem;">auto_stories</span></div>
+    <div>
+      <h1>Story Alternator</h1>
+      <p>Enterprise Literary Engine & Reading Dashboard</p>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <div class="nav-tab active" data-tab="catalog"><span class="material-symbols-outlined">library_books</span> Catalog</div>
+    <div class="nav-tab" data-tab="reader"><span class="material-symbols-outlined">menu_book</span> Story Reader</div>
+    <div class="nav-tab" data-tab="chat"><span class="material-symbols-outlined">chat</span> AI Assistant</div>
+  </nav>
+
+  <div class="header-actions">
+    <button class="btn" id="btn-upload"><span class="material-symbols-outlined">upload_file</span> Upload Book</button>
+    <button class="btn btn-primary" id="btn-export"><span class="material-symbols-outlined">download</span> Export E-Book</button>
+  </div>
+</header>
+
+<main>
+  <!-- 📚 Tab 1: Book Catalog View -->
+  <section class="tab-view active" id="view-catalog">
+    <div class="catalog-header">
+      <h2>Enterprise Literary Catalog</h2>
+      <p>Select a book from the catalog or upload a custom e-book to read original chapters or alter narrative paths.</p>
+    </div>
+
+    <div class="catalog-grid" id="catalog-grid"></div>
+  </section>
+
+  <!-- 📖 Tab 2: Story Reader & Preview View -->
+  <section class="tab-view" id="view-reader">
+    <div class="reader-container">
+      <div class="reader-toolbar">
+        <div class="reader-meta">
+          <label>Book:</label>
+          <select class="book-select" id="reader-book-select"></select>
+
+          <label style="margin-left:0.6rem;">Branch:</label>
+          <select class="branch-select" id="reader-branch-select"></select>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn" id="btn-reader-illustrate"><span class="material-symbols-outlined">image</span> Illustrate Scene</button>
+          <button class="btn btn-primary" id="btn-reader-export"><span class="material-symbols-outlined">download</span> Export E-Book</button>
+        </div>
+      </div>
+
+      <div class="reader-content" id="reader-body">
+        <img id="reader-scene-img" class="illustration-banner" src="" alt="Scene Illustration">
+        <div class="reader-chapter-title" id="reader-chapter-name"></div>
+        <div id="reader-text-paragraphs" class="reader-text-paragraphs"></div>
+
+        <div class="reader-pivot-chips">
+          <div class="pivot-title">⚡ Pivot Narrative Further:</div>
+          <div class="chip-row">
+            <div class="chip" data-query="What if Elizabeth stops Mr. Darcy before he leaves the room? Write the full modified chapter text.">⚡ What if Elizabeth stops Darcy before he leaves?</div>
+            <div class="chip" data-query="What if Jane arrives at Hunsford parsonage unexpectedly? Write the full modified chapter text.">⚡ What if Jane arrives unexpectedly?</div>
+            <div class="chip" data-query="Generate a new scene illustration for this chapter">🖼️ Generate Scene Illustration</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 💬 Tab 3: AI Assistant Chat View -->
+  <section class="tab-view" id="view-chat">
+    <div class="chat-layout">
+      <div id="log"></div>
+      <form id="form">
+        <input id="input" placeholder="Ask the agent to alter the story, write full chapters, or search Gutenberg books..." autocomplete="off">
+        <button class="btn btn-primary">Send</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- Upload Modal -->
+<div class="modal-backdrop" id="upload-modal">
+  <div class="modal-card">
+    <h3>Upload Custom E-Book</h3>
+    <p style="color:var(--text-sub); font-size:0.85rem;">Upload a .txt or .epub file to parse into custom story chapters.</p>
+    <div style="margin-bottom:0.8rem;">
+      <input type="text" id="up-title" placeholder="Book Title (e.g., My Custom Story)" style="width:100%; margin-bottom:0.5rem; padding:0.7rem; border-radius:8px; border:1px solid var(--border-dark); background:#f8fafc; color:var(--text-main);">
+      <input type="text" id="up-author" placeholder="Author Name" style="width:100%; padding:0.7rem; border-radius:8px; border:1px solid var(--border-dark); background:#f8fafc; color:var(--text-main);">
+    </div>
+    <div class="dropzone" id="dz">
+      <span class="material-symbols-outlined" style="font-size:2.2rem; display:block; margin-bottom:0.4rem; color:var(--accent);">cloud_upload</span>
+      Click or Drag & Drop .txt / .epub file here
+      <input type="file" id="up-file" accept=".txt,.epub" style="display:none;">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+      <button type="button" class="btn" id="modal-close">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-submit">Upload & Parse</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+
+const readerBookSelect = document.getElementById("reader-book-select");
+const readerBranchSelect = document.getElementById("reader-branch-select");
+
+// Scalable 2-Level Data Store (Book -> Branches)
+const booksStore = {
+  "pride_and_prejudice": {
+    id: "pride_and_prejudice",
+    title: "Pride and Prejudice",
+    author: "Jane Austen (1813)",
+    badge: "Classic Pivot",
+    desc: "Chapter 34: The Proposal Pivot. Explore Darcy's proposal, his apology, or Elizabeth's confrontation.",
+    coverGradient: "linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%)",
+    activeBranchId: "pride_apology",
+    branches: {
+      "pride_orig": {
+        id: "pride_orig",
+        title: "Original Chapter 34: Darcy's Proposal",
+        chapter: "Chapter 34: Mr. Darcy's Proposal",
+        img: "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_pride-and-prejudice.png",
+        text: `When Mr. Darcy entered the room, he sat down for a few moments, and then getting up walked about the room. Elizabeth was surprised, but said not a word. After a silence of several minutes, he came towards her in an agitated manner, and thus began:\n\n“In vain have I struggled. It will not do. My feelings will not be suppressed. You must allow me to tell you how ardently I admire and love you.”\n\nElizabeth's astonishment was beyond expression. She stared, colored, doubted, and was silent. He considered this sufficient encouragement; and the avowal of all that he felt, and had long felt for her, immediately followed. He spoke well; but there were other feelings besides those of the heart to be detailed; and he was not more eloquent on the subject of tenderness than of pride.`
+      },
+      "pride_apology": {
+        id: "pride_apology",
+        title: "Branch 1: Darcy's Humble Apology",
+        chapter: "Chapter 34: The Alternate Proposal",
+        img: "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_e41abb19.jpg",
+        text: `Mr. Darcy turned away from the window, his expression softened by a profound humility that Elizabeth had never before witnessed. Rather than offering defense or arrogance, he spoke in a low, measured voice.\n\n“Miss Elizabeth, your words have pierced my pride to the very core. I shall not burden you with protestations, but I beg your forgiveness for the offense my manner has caused your sensitive heart.”\n\nElizabeth stood stunned in the dimly lit parlor of Hunsford parsonage. The fierce anger that had burned within her began to yield to an unexpected quietude as Mr. Darcy bowed deeply and took his leave...\n\n“If I have been ungenerous in my judgment of your character, Mr. Darcy,” Elizabeth began, her voice faltering slightly as she stepped forward, “it is because I believed you incapable of seeing beyond your own elevated station.”\n\nDarcy paused at the threshold, his hand trembling slightly on the brass knob. He did not leave. The profound silence between them filled with a rare, unspoken understanding.`
+      },
+      "pride_stops": {
+        id: "pride_stops",
+        title: "Branch 2: Elizabeth Confronts Darcy at Threshold",
+        chapter: "Chapter 34: The Threshold Confrontation",
+        img: "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_67d9a6bd.jpg",
+        text: `The drawing-room at Hunsford Parsonage had never witnessed such a scene. Mr. Darcy, his face a mask of wounded pride and indignation, had just delivered his ill-conceived proposal, and Elizabeth, her own spirit aflame with prejudice and righteous anger, had utterly refused him. He had turned to leave, his long strides carrying him towards the door, when a sudden, unexpected impulse seized Elizabeth.\n\n“Mr. Darcy, wait!” she called out, her voice a little breathy, but firm.\n\nHe paused, one hand already on the doorknob, and slowly turned. His eyes, though still burning with affront, held a flicker of surprise, perhaps even a nascent hope. He said nothing, merely waited, his tall figure silhouetted against the weak afternoon light filtering through the window.\n\nElizabeth felt her heart thumping against her ribs, but she pressed on. “You cannot simply leave like this, after… after what you have said. There are accusations, sir, that demand an explanation, not merely a retreat.”\n\nDarcy’s jaw tightened. “I believe I have made myself quite clear, Miss Bennet, and you, in turn, have left no room for doubt regarding your sentiments.”`
+      }
+    }
+  },
+  "the_great_gatsby": {
+    id: "the_great_gatsby",
+    title: "The Great Gatsby",
+    author: "F. Scott Fitzgerald (1925)",
+    badge: "1920s Classic",
+    desc: "Chapter 7: The Plaza Hotel Confrontation. What if Gatsby revealed his past earlier and avoided the tragedy?",
+    coverGradient: "linear-gradient(135deg, #004d40 0%, #00796b 100%)",
+    activeBranchId: "gatsby_orig",
+    branches: {
+      "gatsby_orig": {
+        id: "gatsby_orig",
+        title: "Original Chapter 7: The Plaza Hotel Confrontation",
+        chapter: "Chapter 7: The Plaza Hotel Suite",
+        img: "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_gatsby.jpg",
+        text: `The room was large and suffocating, and, though the windows were open with a breeze blowing in off the park, it brought no relief. Tom broke out violently:\n\n“What kind of a row are you trying to cause in my house anyhow?”\n\nThey were in the suite at the Plaza Hotel. Gatsby's eyes opened and closed. “Your wife doesn't love you,” said Gatsby. “She's never loved you. She loves me.”\n\n“You're crazy!” cried Tom. “She never loved you. She didn't know you were alive when we were married.”`
+      }
+    }
+  },
+  "frankenstein": {
+    id: "frankenstein",
+    title: "Frankenstein",
+    author: "Mary Shelley (1818)",
+    badge: "Gothic Fiction",
+    desc: "Chapter 10: The Mer de Glace Meeting. What if Victor Frankenstein listened to his creation's request peacefully?",
+    coverGradient: "linear-gradient(135deg, #1a237e 0%, #283593 100%)",
+    activeBranchId: "frankenstein_orig",
+    branches: {
+      "frankenstein_orig": {
+        id: "frankenstein_orig",
+        title: "Original Chapter 10: The Summit Meeting",
+        chapter: "Chapter 10: Mer de Glace",
+        img: "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_frankenstein.jpg",
+        text: `It was nearly noon when I arrived at the top of the ascent. For some time I sat upon the rock that overlooks the sea of ice. Suddenly I beheld the figure of a man, advancing towards me with superhuman speed.\n\n“Devil,” I exclaimed, “do you dare approach me? And do not you fear the fierce vengeance of my arm wreaked on your miserable head?”\n\n“I expected this reception,” said the daemon. “All men hate the wretched; how, then, must I be hated, who am miserable beyond all living things!”`
+      }
+    }
+  }
+};
+
+let currentBookId = "pride_and_prejudice";
+
+function renderCatalog() {
+  const grid = document.getElementById("catalog-grid");
+  grid.innerHTML = "";
+
+  for (const bookId in booksStore) {
+    const b = booksStore[bookId];
+    const card = document.createElement("div");
+    card.className = "book-card";
+    card.innerHTML = `
+      <div class="book-cover" style="background: ${b.coverGradient || 'linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)'};">
+        <span class="book-badge">${b.badge || 'Custom E-Book'}</span>
+        <h3 style="color:#fff; font-family:'Cinzel',serif; position:relative; z-index:2; margin:0; text-shadow:0 2px 10px rgba(0,0,0,0.5);">${b.title}</h3>
+      </div>
+      <div class="book-body">
+        <div class="book-title">${b.title}</div>
+        <div class="book-author">by ${b.author}</div>
+        <div class="book-desc">${b.desc}</div>
+        <div class="book-actions">
+          <button class="btn btn-primary btn-read-book" data-book="${b.id}">📖 Read Book</button>
+          <button class="btn btn-alter-path" data-book="${b.id}" data-prompt="Write an alternate storyline branch for ${b.title}.">⚡ Alter Path</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+
+  // Bind catalog action buttons
+  document.querySelectorAll(".btn-read-book").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const bId = btn.getAttribute("data-book");
+      selectBook(bId);
+      switchTab("reader");
+    });
+  });
+
+  document.querySelectorAll(".btn-alter-path").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const bId = btn.getAttribute("data-book");
+      selectBook(bId);
+      const prompt = btn.getAttribute("data-prompt");
+      sendQuery(prompt);
+    });
+  });
+}
+
+function updateBookSelectorDropdown() {
+  readerBookSelect.innerHTML = "";
+  for (const bId in booksStore) {
+    const b = booksStore[bId];
+    const opt = document.createElement("option");
+    opt.value = b.id;
+    opt.textContent = b.title;
+    readerBookSelect.appendChild(opt);
+  }
+  readerBookSelect.value = currentBookId;
+}
+
+function updateBranchSelectorDropdown() {
+  readerBranchSelect.innerHTML = "";
+  const book = booksStore[currentBookId];
+  if (!book || !book.branches) return;
+
+  for (const brId in book.branches) {
+    const br = book.branches[brId];
+    const opt = document.createElement("option");
+    opt.value = br.id;
+    opt.textContent = br.title;
+    readerBranchSelect.appendChild(opt);
+  }
+  readerBranchSelect.value = book.activeBranchId || Object.keys(book.branches)[0];
+}
+
+function loadActiveBranchIntoReader() {
+  const book = booksStore[currentBookId];
+  if (!book) return;
+  const branchId = book.activeBranchId || Object.keys(book.branches)[0];
+  const br = book.branches[branchId];
+  if (!br) return;
+
+  document.getElementById("reader-chapter-name").textContent = br.chapter || br.title;
+  
+  const imgEl = document.getElementById("reader-scene-img");
+  if (br.img) {
+    imgEl.src = br.img;
+    imgEl.style.display = "block";
+  } else {
+    imgEl.style.display = "none";
+  }
+
+  const bodyEl = document.getElementById("reader-text-paragraphs");
+  const paragraphs = br.text.split("\n\n").filter(p => p.trim());
+  bodyEl.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join("");
+}
+
+function selectBook(bookId) {
+  if (!booksStore[bookId]) return;
+  currentBookId = bookId;
+  updateBookSelectorDropdown();
+  updateBranchSelectorDropdown();
+  loadActiveBranchIntoReader();
+}
+
+function selectBranch(branchId) {
+  const book = booksStore[currentBookId];
+  if (book && book.branches[branchId]) {
+    book.activeBranchId = branchId;
+    readerBranchSelect.value = branchId;
+    loadActiveBranchIntoReader();
+  }
+}
+
+readerBookSelect.addEventListener("change", (e) => {
+  selectBook(e.target.value);
+});
+
+readerBranchSelect.addEventListener("change", (e) => {
+  selectBranch(e.target.value);
+});
+
+// Tab Navigation
+const tabs = document.querySelectorAll(".nav-tab");
+const views = document.querySelectorAll(".tab-view");
+
+function switchTab(targetTab) {
+  tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === targetTab));
+  views.forEach(v => v.classList.toggle("active", v.id === "view-" + targetTab));
+}
+tabs.forEach(t => t.addEventListener("click", () => switchTab(t.dataset.tab)));
+
+// Utility DOM builder
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function bubble(who) {
+  const m = el("div", "msg " + who);
+  const b = el("div", "bubble");
+  m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
+  return b;
+}
+
+function cleanResponseText(rawText) {
+  if (!rawText) return "";
+  return rawText.replace(/<a2ui-json>[\s\S]*?<\/a2ui-json>/gi, "").trim();
+}
+
+function renderReply(b, parts) {
+  b.textContent = "";
+  const rawTexts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
+  const a2uiParts = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
+
+  let cleanText = cleanResponseText(rawTexts.join("\n"));
+  if (cleanText) b.appendChild(el("div", null, cleanText));
+
+  // Extract Image URL if present
+  let extractedImg = "";
+  const imgMatch = (rawTexts.join("\n") + JSON.stringify(a2uiParts)).match(/https:\/\/storage\.googleapis\.com\/[^\s"')]+\.(png|jpg|jpeg)/i);
+  if (imgMatch) extractedImg = imgMatch[0];
+
+  // Store new branch under current active book
+  if (cleanText.length > 80) {
+    const book = booksStore[currentBookId];
+    const newBranchId = "branch_" + Date.now();
+    const branchTitle = "Branch: " + (cleanText.slice(0, 42) + "...");
+    
+    book.branches[newBranchId] = {
+      id: newBranchId,
+      title: branchTitle,
+      chapter: "Alternate Story Chapter Pages",
+      img: extractedImg || (book.branches[Object.keys(book.branches)[0]]?.img || ""),
+      text: cleanText
+    };
+    book.activeBranchId = newBranchId;
+
+    updateBranchSelectorDropdown();
+    loadActiveBranchIntoReader();
+
+    const readerBtn = el("button", "open-reader-btn");
+    readerBtn.innerHTML = `<span class="material-symbols-outlined">menu_book</span> 📖 Read Full Storyline Pages in Reader Tab`;
+    readerBtn.addEventListener("click", () => {
+      selectBranch(newBranchId);
+      switchTab("reader");
+    });
+    b.appendChild(readerBtn);
+  }
+
+  if (!b.childNodes.length) b.textContent = cleanText || "(narrative updated — check Story Reader tab)";
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendQuery(text) {
+  switchTab("chat");
+  bubble("user").textContent = text;
+  input.value = "";
+  const b = bubble("agent"); b.textContent = "Writing complete alternate story chapter pages & scene artwork…";
+  try {
+    const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
+    renderReply(b, data.parts || []);
+  } catch (e) {
+    b.textContent = "Error: " + e.message;
+  }
+}
+
+form.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  if (text) sendQuery(text);
+});
+
+// Chips Event Handlers
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const q = chip.getAttribute("data-query");
+    if (q) sendQuery(q);
+  });
+});
+
+document.getElementById("btn-export").addEventListener("click", () => {
+  sendQuery("Please export the current story branch into a formatted e-book document with download link using export_story_ebook.");
+});
+document.getElementById("btn-reader-export").addEventListener("click", () => {
+  sendQuery("Please export the current story branch into a formatted e-book document with download link using export_story_ebook.");
+});
+
+document.getElementById("btn-reader-illustrate").addEventListener("click", () => {
+  sendQuery("Please generate a visual scene illustration for this chapter using generate_scene_illustration.");
+});
+
+// Modal Upload Logic (Adds custom uploaded book dynamically)
+const modal = document.getElementById("upload-modal");
+const dz = document.getElementById("dz");
+const fileInput = document.getElementById("up-file");
+
+document.getElementById("btn-upload").addEventListener("click", () => { modal.style.display = "flex"; });
+document.getElementById("modal-close").addEventListener("click", () => { modal.style.display = "none"; });
+
+dz.addEventListener("click", () => fileInput.click());
+dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("hover"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("hover"));
+dz.addEventListener("drop", (e) => {
+  e.preventDefault(); dz.classList.remove("hover");
+  if (e.dataTransfer.files.length) fileInput.files = e.dataTransfer.files;
+});
+
+document.getElementById("modal-submit").addEventListener("click", async () => {
+  const file = fileInput.files[0];
+  const title = document.getElementById("up-title").value.trim() || "Custom E-Book";
+  const author = document.getElementById("up-author").value.trim() || "Anonymous";
+
+  if (!file) { alert("Please select a file to upload."); return; }
+  modal.style.display = "none";
+
+  const customBookId = "upload_" + Date.now();
+  booksStore[customBookId] = {
+    id: customBookId,
+    title: title,
+    author: author,
+    badge: "User Uploaded",
+    desc: `Custom uploaded book: "${title}" by ${author}.`,
+    coverGradient: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+    activeBranchId: customBookId + "_orig",
+    branches: {
+      [customBookId + "_orig"]: {
+        id: customBookId + "_orig",
+        title: "Original Uploaded Text",
+        chapter: "Chapter 1: Uploaded Narrative",
+        img: "",
+        text: `Uploaded Book: "${title}" by ${author}.\n\nNarrative text extracted and seeded into story branches. You can now prompt the agent to alter any plotline or create alternate branches.`
+      }
+    }
+  };
+
+  renderCatalog();
+  selectBook(customBookId);
+  switchTab("chat");
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("title", title);
+  formData.append("author", author);
+
+  bubble("user").textContent = `📚 Uploaded Custom Book: "${title}" by ${author}`;
+  const b = bubble("agent"); b.textContent = "Parsing e-book and seeding story branches…";
+
+  try {
+    const res = await fetch("/upload", { method: "POST", body: formData });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
+    renderReply(b, data.parts || []);
+  } catch (e) {
+    b.textContent = "Upload Error: " + e.message;
+  }
+});
+
+// Initialize Enterprise Platform
+renderCatalog();
+selectBook("pride_and_prejudice");
+</script>
+</body>
+</html>
