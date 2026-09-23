@@ -103,7 +103,7 @@ export function App() {
     {
       id: '1',
       sender: 'agent',
-      text: "Greetings! I am your AI Story Alternator Copilot. Select a book, choose a pivot scenario chip, or ask me to alter any plotline in authentic literary style!"
+      text: "Greetings! I am your AI Story Alternator Copilot powered by Gemini 2.5 Flash & Vertex AI Agent Engine. Select a book, choose a pivot scenario chip, or ask me to alter any plotline in authentic literary style!"
     }
   ]);
 
@@ -118,10 +118,65 @@ export function App() {
     }
   };
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     const userMsg: ChatMessage = { id: Date.now().toString(), sender: 'user', text };
     setMessages((prev) => [...prev, userMsg]);
 
+    try {
+      // Connect directly to backend /chat endpoint
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        let agentText = "";
+        let imgUrl = "";
+
+        if (data.parts) {
+          for (const part of data.parts) {
+            if (part.text) agentText += part.text;
+          }
+        }
+
+        // Clean A2UI tags if present
+        agentText = agentText.replace(/<a2ui-json>[\s\S]*?<\/a2ui-json>/gi, "").trim();
+
+        const newBranchId = `branch_${Date.now()}`;
+        const newBranch = {
+          id: newBranchId,
+          title: text.length > 30 ? text.substring(0, 30) + "..." : text,
+          chapter: `${activeBook.title} Alternate`,
+          img: imgUrl || "https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_e94e0ab1.jpg",
+          text: agentText || `Here is the modified story branch for "${text}". Elizabeth Bennett stood resolutely as Mr. Darcy turned back at the threshold, altering the course of Regency history.`
+        };
+
+        // Dynamically add new branch to active book
+        setBooks((prevBooks) =>
+          prevBooks.map((b) =>
+            b.id === activeBookId
+              ? { ...b, branches: [newBranch, ...b.branches] }
+              : b
+          )
+        );
+
+        const agentMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: 'agent',
+          text: agentText || `Generated full modified chapter for "${text}". Click below to read the complete alternate storyline.`,
+          branchId: newBranchId,
+          img: newBranch.img
+        };
+        setMessages((prev) => [...prev, agentMsg]);
+        return;
+      }
+    } catch {
+      // Fallback for standalone demo mode
+    }
+
+    // Local fallback response
     setTimeout(() => {
       const agentMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -131,7 +186,7 @@ export function App() {
         img: 'https://storage.googleapis.com/story-alternator-media-qwiklabs-gcp-02-f255a355adec/scene_e94e0ab1.jpg'
       };
       setMessages((prev) => [...prev, agentMsg]);
-    }, 1200);
+    }, 1000);
   };
 
   const handleOpenBranchInReader = (branchId: string) => {
